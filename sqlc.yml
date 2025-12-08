@@ -1,7 +1,7 @@
 version: "2"
 sql:
   - engine: "sqlite"
-    queries: "sqlc/query.sql"
+    queries: "sqlc/queries"
     schema:
       - "migrations/*.up.sql"
     gen:
