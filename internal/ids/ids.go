@@ -12,6 +12,18 @@ const (
 
 type Option func(*Options)
 
+func WithAlphabet(alphabet string) Option {
+	return func(o *Options) {
+		o.Alphabet = alphabet
+	}
+}
+
+func WithSize(size int) Option {
+	return func(o *Options) {
+		o.Size = size
+	}
+}
+
 type Options struct {
 	Alphabet string
 	Size     int
