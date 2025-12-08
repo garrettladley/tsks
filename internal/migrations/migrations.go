@@ -23,7 +23,7 @@ func Apply(db *sql.DB) error {
 
 	var upFiles []string
 	for _, entry := range entries {
-		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".up.sql") {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".sql") {
 			upFiles = append(upFiles, entry.Name())
 		}
 	}

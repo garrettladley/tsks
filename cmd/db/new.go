@@ -38,7 +38,7 @@ func newMigrationCmd() *cobra.Command {
 			}
 			nextNum++
 
-			filename := filepath.Join("migrations", fmt.Sprintf("%06d_%s.up.sql", nextNum, name))
+			filename := filepath.Join("migrations", fmt.Sprintf("%06d_%s.sql", nextNum, name))
 
 			if _, err := os.Stat(filename); err == nil {
 				return fmt.Errorf("migration file already exists: %s", filename)

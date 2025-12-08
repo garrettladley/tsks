@@ -3,7 +3,7 @@ sql:
   - engine: "sqlite"
     queries: "sqlc/queries"
     schema:
-      - "migrations/*.up.sql"
+      - "migrations/*.sql"
     gen:
       go:
         package: "sqlc"
