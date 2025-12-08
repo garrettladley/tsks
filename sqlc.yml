@@ -3,7 +3,7 @@ sql:
   - engine: "sqlite"
     queries: "sqlc/queries"
     schema:
-      - "migrations/*.up.sql"
+      - "migrations/*.sql"
     gen:
       go:
         package: "sqlc"
@@ -12,3 +12,17 @@ sql:
         emit_interface: true
         emit_empty_slices: true
         emit_pointers_for_null_types: true
+        overrides:
+          - column: "tasks.status"
+            go_type:
+              import: "github.com/garrettladley/tsks/internal/schemas"
+              type: "TaskStatus"
+          - column: "tasks.version"
+            go_type:
+              type: "time.Time"
+          - column: "tasks.created_at"
+            go_type:
+              type: "time.Time"
+          - column: "tasks.archived_at"
+            go_type:
+              type: "*time.Time"

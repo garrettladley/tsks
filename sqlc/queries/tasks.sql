@@ -2,7 +2,7 @@
 SELECT * FROM tasks t1
 WHERE t1.id = ?
   AND t1.archived_at IS NULL
-  AND t1.version = (SELECT MAX(t2.version) FROM tasks t2 WHERE t2.id = ?)
+  AND t1.version = (SELECT MAX(t2.version) FROM tasks t2 WHERE t2.id = t1.id)
 LIMIT 1;
 
 -- name: ListTasks :many
@@ -16,6 +16,14 @@ WHERE t1.archived_at IS NULL
 ORDER BY t1.created_at DESC, t1.version DESC;
 
 -- name: CreateTask :one
+INSERT INTO tasks (
+  id, title, description, status
+) VALUES (
+  ?, ?, ?, ?
+)
+RETURNING *;
+
+-- name: CreateTasks :many
 INSERT INTO tasks (
   id, title, description, status
 ) VALUES (
@@ -41,3 +49,6 @@ WHERE (id, version) IN (
   WHERE t1.id = ?
   GROUP BY t1.id
 );
+
+-- name: TruncateTasks :exec
+DELETE FROM tasks;
