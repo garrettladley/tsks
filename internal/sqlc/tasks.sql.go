@@ -47,6 +47,58 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 	return i, err
 }
 
+const createTasks = `-- name: CreateTasks :many
+INSERT INTO tasks (
+  id, title, description, status
+) VALUES (
+  ?, ?, ?, ?
+)
+RETURNING id, version, title, description, status, created_at, archived_at
+`
+
+type CreateTasksParams struct {
+	ID          string             `json:"id"`
+	Title       string             `json:"title"`
+	Description *string            `json:"description"`
+	Status      schemas.TaskStatus `json:"status"`
+}
+
+func (q *Queries) CreateTasks(ctx context.Context, arg CreateTasksParams) ([]Task, error) {
+	rows, err := q.db.QueryContext(ctx, createTasks,
+		arg.ID,
+		arg.Title,
+		arg.Description,
+		arg.Status,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Task{}
+	for rows.Next() {
+		var i Task
+		if err := rows.Scan(
+			&i.ID,
+			&i.Version,
+			&i.Title,
+			&i.Description,
+			&i.Status,
+			&i.CreatedAt,
+			&i.ArchivedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const deleteTask = `-- name: DeleteTask :exec
 UPDATE tasks
 SET archived_at = CURRENT_TIMESTAMP
@@ -67,17 +119,12 @@ const getTask = `-- name: GetTask :one
 SELECT id, version, title, description, status, created_at, archived_at FROM tasks t1
 WHERE t1.id = ?
   AND t1.archived_at IS NULL
-  AND t1.version = (SELECT MAX(t2.version) FROM tasks t2 WHERE t2.id = ?)
+  AND t1.version = (SELECT MAX(t2.version) FROM tasks t2 WHERE t2.id = t1.id)
 LIMIT 1
 `
 
-type GetTaskParams struct {
-	ID   string `json:"id"`
-	ID_2 string `json:"id_2"`
-}
-
-func (q *Queries) GetTask(ctx context.Context, arg GetTaskParams) (Task, error) {
-	row := q.db.QueryRowContext(ctx, getTask, arg.ID, arg.ID_2)
+func (q *Queries) GetTask(ctx context.Context, id string) (Task, error) {
+	row := q.db.QueryRowContext(ctx, getTask, id)
 	var i Task
 	err := row.Scan(
 		&i.ID,
@@ -131,6 +178,15 @@ func (q *Queries) ListTasks(ctx context.Context) ([]Task, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const truncateTasks = `-- name: TruncateTasks :exec
+DELETE FROM tasks
+`
+
+func (q *Queries) TruncateTasks(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, truncateTasks)
+	return err
 }
 
 const updateTask = `-- name: UpdateTask :one

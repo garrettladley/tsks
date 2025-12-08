@@ -9,11 +9,17 @@ import (
 )
 
 func main() {
-	cmd := &cobra.Command{
-		Use:   "seed",
-		Short: "Seed the DB with some sample tasks",
+	rootCmd := &cobra.Command{
+		Use:   "db",
+		Short: "Database management commands",
 	}
-	if err := fang.Execute(context.Background(), cmd); err != nil {
+	rootCmd.AddCommand(newMigrationCmd())
+	rootCmd.AddCommand(migrateCmd())
+	rootCmd.AddCommand(seedCmd())
+	rootCmd.AddCommand(listCmd())
+	rootCmd.AddCommand(truncateCmd())
+
+	if err := fang.Execute(context.Background(), rootCmd); err != nil {
 		os.Exit(1)
 	}
 }

@@ -17,3 +17,12 @@ sql:
             go_type:
               import: "github.com/garrettladley/tsks/internal/schemas"
               type: "TaskStatus"
+          - column: "tasks.version"
+            go_type:
+              type: "time.Time"
+          - column: "tasks.created_at"
+            go_type:
+              type: "time.Time"
+          - column: "tasks.archived_at"
+            go_type:
+              type: "*time.Time"
