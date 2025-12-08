@@ -7,6 +7,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/garrettladley/tsks/internal/schemas"
 )
 
 const createTask = `-- name: CreateTask :one
@@ -19,10 +21,10 @@ RETURNING id, version, title, description, status, created_at, archived_at
 `
 
 type CreateTaskParams struct {
-	ID          string  `json:"id"`
-	Title       string  `json:"title"`
-	Description *string `json:"description"`
-	Status      string  `json:"status"`
+	ID          string             `json:"id"`
+	Title       string             `json:"title"`
+	Description *string            `json:"description"`
+	Status      schemas.TaskStatus `json:"status"`
 }
 
 func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error) {
@@ -141,10 +143,10 @@ RETURNING id, version, title, description, status, created_at, archived_at
 `
 
 type UpdateTaskParams struct {
-	ID          string  `json:"id"`
-	Title       string  `json:"title"`
-	Description *string `json:"description"`
-	Status      string  `json:"status"`
+	ID          string             `json:"id"`
+	Title       string             `json:"title"`
+	Description *string            `json:"description"`
+	Status      schemas.TaskStatus `json:"status"`
 }
 
 func (q *Queries) UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, error) {
