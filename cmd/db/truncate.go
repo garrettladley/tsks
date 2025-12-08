@@ -16,7 +16,9 @@ func truncateCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer sqlDB.Close()
+			defer func() {
+				_ = sqlDB.Close()
+			}()
 
 			ctx := cmd.Context()
 			err = queries.TruncateTasks(ctx)

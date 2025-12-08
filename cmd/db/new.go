@@ -45,7 +45,7 @@ func newMigrationCmd() *cobra.Command {
 			}
 
 			content := fmt.Sprintf("-- Migration: %s\n\n", name)
-			if err := os.WriteFile(filename, []byte(content), 0644); err != nil {
+			if err := os.WriteFile(filename, []byte(content), 0o600); err != nil {
 				return fmt.Errorf("failed to create migration file: %w", err)
 			}
 

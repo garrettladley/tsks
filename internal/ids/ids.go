@@ -5,8 +5,10 @@ import (
 	"strings"
 )
 
-const defaultAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-const defaultSize = 21
+const (
+	defaultAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	defaultSize     = 21
+)
 
 type Option func(*Options)
 
@@ -44,7 +46,9 @@ func generateRandomString(alphabet string, size int) string {
 		bytes       = make([]byte, size)
 	)
 
-	rand.Read(bytes)
+	if _, err := rand.Read(bytes); err != nil {
+		panic(err)
+	}
 
 	for i := range size {
 		sb.WriteByte(alphabet[int(bytes[i])%alphabetLen])

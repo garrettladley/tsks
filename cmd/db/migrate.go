@@ -16,7 +16,9 @@ func migrateCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer sqlDB.Close()
+			defer func() {
+				_ = sqlDB.Close()
+			}()
 
 			fmt.Println("Migrations applied successfully")
 			return nil

@@ -29,7 +29,9 @@ func seedCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer sqlDB.Close()
+			defer func() {
+				_ = sqlDB.Close()
+			}()
 
 			ctx := cmd.Context()
 			for _, task := range tasks {

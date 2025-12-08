@@ -18,8 +18,8 @@ func Open(dbPath string) (*sql.DB, *sqlc.Queries, error) {
 		return nil, nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	if err := migrations.Apply(db, "migrations"); err != nil {
-		db.Close()
+	if err := migrations.Apply(db); err != nil {
+		_ = db.Close()
 		return nil, nil, err
 	}
 

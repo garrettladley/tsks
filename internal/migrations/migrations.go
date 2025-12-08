@@ -9,7 +9,9 @@ import (
 	"strings"
 )
 
-func Apply(db *sql.DB, migrationsDir string) error {
+const migrationsDir = "migrations"
+
+func Apply(db *sql.DB) error {
 	if err := createHistoryTable(db); err != nil {
 		return err
 	}
@@ -38,7 +40,8 @@ func Apply(db *sql.DB, migrationsDir string) error {
 			continue
 		}
 
-		content, err := os.ReadFile(filepath.Join(migrationsDir, filename))
+		// filename comes from os.ReadDir which only returns base names, safe from path traversal
+		content, err := os.ReadFile(filepath.Join(migrationsDir, filename)) //nolint:gosec
 		if err != nil {
 			return fmt.Errorf("failed to read migration file %s: %w", filename, err)
 		}
