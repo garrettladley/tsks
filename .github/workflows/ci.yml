@@ -30,6 +30,18 @@ jobs:
           version: v2.6
           args: --timeout=5m
 
+      - name: Install sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+      - name: Verify sqlc generated code is up to date
+        run: |
+          sqlc generate
+          if ! git diff --exit-code internal/sqlc/; then
+            echo "Error: sqlc generated code is out of date"
+            echo "Please run 'sqlc generate' and commit the changes"
+            exit 1
+          fi
+
   test:
     name: Test
     runs-on: ubuntu-latest
