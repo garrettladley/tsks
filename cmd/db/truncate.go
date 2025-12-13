@@ -12,7 +12,7 @@ func truncateCmd() *cobra.Command {
 		Use:   "truncate",
 		Short: "Truncate all tasks from the database",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			sqlDB, queries, err := db.Open("tsks.db")
+			sqlDB, querier, err := db.Open("tsks.db")
 			if err != nil {
 				return err
 			}
@@ -21,7 +21,7 @@ func truncateCmd() *cobra.Command {
 			}()
 
 			ctx := cmd.Context()
-			err = queries.TruncateTasks(ctx)
+			err = querier.TruncateTasks(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to truncate tasks: %w", err)
 			}
