@@ -25,7 +25,7 @@ func seedCmd() *cobra.Command {
 				{name: "Rewrite everything in Go", status: schemas.TaskStatusPending},
 			}
 
-			sqlDB, queries, err := db.Open("tsks.db")
+			sqlDB, querier, err := db.Open("tsks.db")
 			if err != nil {
 				return err
 			}
@@ -36,7 +36,7 @@ func seedCmd() *cobra.Command {
 			ctx := cmd.Context()
 			for _, task := range tasks {
 				taskID := ids.New("task")
-				_, err := queries.CreateTask(ctx, sqlc.CreateTaskParams{
+				_, err := querier.CreateTask(ctx, sqlc.CreateTaskParams{
 					ID:          taskID,
 					Title:       task.name,
 					Description: task.description,

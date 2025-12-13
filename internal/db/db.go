@@ -9,10 +9,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// Open opens a connection to the SQLite database and returns the queries instance.
+// Open opens a connection to the SQLite database and returns a querier.
 // It automatically applies any pending migrations.
 // The caller is responsible for closing the returned *sql.DB.
-func Open(dbPath string) (*sql.DB, *sqlc.Queries, error) {
+func Open(dbPath string) (*sql.DB, sqlc.Querier, error) {
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to open database: %w", err)
@@ -23,6 +23,6 @@ func Open(dbPath string) (*sql.DB, *sqlc.Queries, error) {
 		return nil, nil, err
 	}
 
-	queries := sqlc.New(db)
-	return db, queries, nil
+	querier := sqlc.New(db)
+	return db, querier, nil
 }

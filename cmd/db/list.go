@@ -12,7 +12,7 @@ func listCmd() *cobra.Command {
 		Use:   "list",
 		Short: "List all tasks",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			sqlDB, queries, err := db.Open("tsks.db")
+			sqlDB, querier, err := db.Open("tsks.db")
 			if err != nil {
 				return err
 			}
@@ -21,7 +21,7 @@ func listCmd() *cobra.Command {
 			}()
 
 			ctx := cmd.Context()
-			tasks, err := queries.ListTasks(ctx)
+			tasks, err := querier.ListTasks(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to list tasks: %w", err)
 			}
