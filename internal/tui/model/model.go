@@ -16,11 +16,6 @@ type Model struct {
 	loading bool
 }
 
-type tasksLoadedMsg struct {
-	tasks []sqlc.Task
-	err   error
-}
-
 func New(querier sqlc.Querier) *Model {
 	l := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
 	l.Title = "Tasks"
@@ -31,15 +26,20 @@ func New(querier sqlc.Querier) *Model {
 	}
 }
 
+func (m Model) Init() tea.Cmd {
+	return loadTasksCmd(m.querier)
+}
+
+type tasksLoadedMsg struct {
+	tasks []sqlc.Task
+	err   error
+}
+
 func loadTasksCmd(querier sqlc.Querier) tea.Cmd {
 	return func() tea.Msg {
 		tasks, err := querier.ListTasks(context.Background())
 		return tasksLoadedMsg{tasks: tasks, err: err}
 	}
-}
-
-func (m Model) Init() tea.Cmd {
-	return loadTasksCmd(m.querier)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
