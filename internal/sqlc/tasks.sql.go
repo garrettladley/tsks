@@ -180,6 +180,115 @@ func (q *Queries) ListTasks(ctx context.Context) ([]Task, error) {
 	return items, nil
 }
 
+const listTasksPageBackward = `-- name: ListTasksPageBackward :many
+SELECT t1.id, t1.version, t1.title, t1.description, t1.status, t1.created_at, t1.archived_at FROM tasks t1
+INNER JOIN (
+    SELECT id, MAX(version) as max_version
+    FROM tasks
+    GROUP BY id
+) t2 ON t1.id = t2.id AND t1.version = t2.max_version
+WHERE t1.archived_at IS NULL
+  AND (
+    t1.created_at > CAST(?1 AS TEXT)
+    OR (t1.created_at = CAST(?1 AS TEXT) AND t1.id > CAST(?2 AS TEXT))
+  )
+ORDER BY t1.created_at ASC, t1.id ASC
+LIMIT ?3
+`
+
+type ListTasksPageBackwardParams struct {
+	CursorCreatedAt string `json:"cursor_created_at"`
+	CursorID        string `json:"cursor_id"`
+	PageLimit       int64  `json:"page_limit"`
+}
+
+// Fetch newer tasks (scrolling up).
+func (q *Queries) ListTasksPageBackward(ctx context.Context, arg ListTasksPageBackwardParams) ([]Task, error) {
+	rows, err := q.db.QueryContext(ctx, listTasksPageBackward, arg.CursorCreatedAt, arg.CursorID, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Task{}
+	for rows.Next() {
+		var i Task
+		if err := rows.Scan(
+			&i.ID,
+			&i.Version,
+			&i.Title,
+			&i.Description,
+			&i.Status,
+			&i.CreatedAt,
+			&i.ArchivedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTasksPageForward = `-- name: ListTasksPageForward :many
+SELECT t1.id, t1.version, t1.title, t1.description, t1.status, t1.created_at, t1.archived_at FROM tasks t1
+INNER JOIN (
+    SELECT id, MAX(version) as max_version
+    FROM tasks
+    GROUP BY id
+) t2 ON t1.id = t2.id AND t1.version = t2.max_version
+WHERE t1.archived_at IS NULL
+  AND (
+    CAST(?1 AS TEXT) IS NULL
+    OR t1.created_at < CAST(?1 AS TEXT)
+    OR (t1.created_at = CAST(?1 AS TEXT) AND t1.id < CAST(?2 AS TEXT))
+  )
+ORDER BY t1.created_at DESC, t1.id DESC
+LIMIT ?3
+`
+
+type ListTasksPageForwardParams struct {
+	CursorCreatedAt *string `json:"cursor_created_at"`
+	CursorID        *string `json:"cursor_id"`
+	PageLimit       int64   `json:"page_limit"`
+}
+
+// Fetch older tasks (scrolling down). Pass NULL cursor values for initial load.
+func (q *Queries) ListTasksPageForward(ctx context.Context, arg ListTasksPageForwardParams) ([]Task, error) {
+	rows, err := q.db.QueryContext(ctx, listTasksPageForward, arg.CursorCreatedAt, arg.CursorID, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Task{}
+	for rows.Next() {
+		var i Task
+		if err := rows.Scan(
+			&i.ID,
+			&i.Version,
+			&i.Title,
+			&i.Description,
+			&i.Status,
+			&i.CreatedAt,
+			&i.ArchivedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const truncateTasks = `-- name: TruncateTasks :exec
 DELETE FROM tasks
 `
