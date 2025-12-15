@@ -55,9 +55,11 @@ type loadingMoreMsg struct{}
 
 func loadPageCmd(querier sqlc.Querier, cursor pagination.TaskListCursor, dir pagination.Direction, pageIndex int) tea.Cmd {
 	return func() tea.Msg {
-		ctx := context.Background()
-		var tasks []sqlc.Task
-		var err error
+		var (
+			ctx   = context.Background()
+			tasks []sqlc.Task
+			err   error
+		)
 
 		limit := int64(pagination.DefaultPageSize + 1)
 
