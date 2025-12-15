@@ -104,5 +104,5 @@ func (d taskDelegate) Render(w io.Writer, m list.Model, index int, item list.Ite
 		desc = "\n  " + descStyle.Render(*t.t.Description)
 	}
 
-	fmt.Fprintf(w, "%s%s\n", title, desc)
+	_, _ = fmt.Fprintf(w, "%s%s\n", title, desc)
 }
