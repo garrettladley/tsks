@@ -14,6 +14,10 @@ type Querier interface {
 	DeleteTask(ctx context.Context, id string) error
 	GetTask(ctx context.Context, id string) (Task, error)
 	ListTasks(ctx context.Context) ([]Task, error)
+	// Fetch newer tasks (scrolling up).
+	ListTasksPageBackward(ctx context.Context, arg ListTasksPageBackwardParams) ([]Task, error)
+	// Fetch older tasks (scrolling down). Pass NULL cursor values for initial load.
+	ListTasksPageForward(ctx context.Context, arg ListTasksPageForwardParams) ([]Task, error)
 	TruncateTasks(ctx context.Context) error
 	UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, error)
 }
