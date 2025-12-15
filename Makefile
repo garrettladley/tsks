@@ -44,6 +44,16 @@ lint/fix:
 fmt:
 	@golangci-lint fmt
 
+## tui: run the TUI application
+.PHONY: tui
+tui:
+	@go run ./cmd/tui
+
+## dev: run the TUI with hot reload (requires watchexec: brew install watchexec)
+.PHONY: dev
+dev:
+	@watchexec -r -e go --shell=none -- sh -c 'go build -o ./tmp/tui ./cmd/tui && ./tmp/tui'
+
 # Database migrations
 MIGRATIONS_PATH = migrations
 DB_PATH ?= tsks.db
