@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(tree:*)",
+
+      "Bash(go build:*)",
+      "Bash(golangci-lint run:*)",
+
+      "Bash(sqlc generate:*)",
+      "Bash(make sqlc/generate:*)",
+
+      "Bash(gh pr view:*)",
+      "Bash(gh run view:*)",
+
+      "WebFetch(domain:pkg.go.dev)",
+      "WebFetch(domain:sqlc.dev)",
+      "WebFetch(domain:charm.sh)",
+      "WebFetch(domain:golangci-lint.run)"
+    ]
+  }
+}
