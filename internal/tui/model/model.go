@@ -6,8 +6,11 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/garrettladley/tsks/internal/sqlc"
 )
+
+var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 type Model struct {
 	querier sqlc.Querier
@@ -17,8 +20,16 @@ type Model struct {
 }
 
 func New(querier sqlc.Querier) *Model {
-	l := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
+	delegate := newTaskDelegate()
+	l := list.New([]list.Item{}, delegate, 0, 0)
 	l.Title = "Tasks"
+	l.SetShowTitle(true)
+
+	l.Styles.Title = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("15")).
+		Bold(true).
+		Padding(0, 1)
+
 	return &Model{
 		querier: querier,
 		list:    l,
@@ -45,7 +56,8 @@ func loadTasksCmd(querier sqlc.Querier) tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.list.SetSize(msg.Width, msg.Height)
+		h, v := docStyle.GetFrameSize()
+		m.list.SetSize(msg.Width-h, msg.Height-v)
 	case tasksLoadedMsg:
 		m.loading = false
 		if msg.err != nil {
