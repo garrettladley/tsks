@@ -22,7 +22,8 @@ func seedCmd() *cobra.Command {
 			}{
 				{name: "Water the couch", status: schemas.TaskStatusPending},
 				{name: "Walk my goldfish", status: schemas.TaskStatusPending, description: strPtr("They were parmesan flavored")},
-				{name: "Rewrite everything in Go", status: schemas.TaskStatusPending},
+				{name: "Rewrite everything in Go", status: schemas.TaskStatusCompleted, description: strPtr("Mission accomplished!")},
+				{name: "Learn bubbletea", status: schemas.TaskStatusCompleted},
 			}
 
 			sqlDB, querier, err := db.Open("tsks.db")
