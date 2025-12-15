@@ -14,7 +14,7 @@ type TaskListCursor struct {
 }
 
 func TaskListCursorFromTask(t sqlc.Task) TaskListCursor {
-	return TaskListCursor{ID: t.ID, CreatedAt: t.CreatedAt}
+	return TaskListCursor{CreatedAt: t.CreatedAt, ID: t.ID}
 }
 
 func (c TaskListCursor) IsZero() bool {
@@ -24,23 +24,23 @@ func (c TaskListCursor) IsZero() bool {
 func (c TaskListCursor) ForwardParams(limit int64) sqlc.ListTasksPageForwardParams {
 	if c.IsZero() {
 		return sqlc.ListTasksPageForwardParams{
-			CursorID:        nil,
 			CursorCreatedAt: nil,
+			CursorID:        nil,
 			PageLimit:       limit,
 		}
 	}
 	ca := c.CreatedAt.Format(sqliteDatetimeFormat)
 	return sqlc.ListTasksPageForwardParams{
-		CursorID:        &c.ID,
 		CursorCreatedAt: &ca,
+		CursorID:        &c.ID,
 		PageLimit:       limit,
 	}
 }
 
 func (c TaskListCursor) BackwardParams(limit int64) sqlc.ListTasksPageBackwardParams {
 	return sqlc.ListTasksPageBackwardParams{
-		CursorID:        c.ID,
 		CursorCreatedAt: c.CreatedAt.Format(sqliteDatetimeFormat),
+		CursorID:        c.ID,
 		PageLimit:       limit,
 	}
 }

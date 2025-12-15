@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,13 +15,12 @@ import (
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 type Model struct {
-	querier     sqlc.Querier
-	list        list.Model
-	window      *pagination.TaskListWindow
-	err         error
-	loading     bool
-	loadingMore bool
-	lastIndex   int
+	querier   sqlc.Querier
+	list      list.Model
+	window    *pagination.TaskListWindow
+	err       error
+	loading   bool
+	lastIndex int
 }
 
 func New(querier sqlc.Querier) *Model {
@@ -51,8 +51,6 @@ type pageLoadedMsg struct {
 	err  error
 }
 
-type loadingMoreMsg struct{}
-
 func loadPageCmd(querier sqlc.Querier, cursor pagination.TaskListCursor, dir pagination.Direction, pageIndex int) tea.Cmd {
 	return func() tea.Msg {
 		var (
@@ -63,13 +61,12 @@ func loadPageCmd(querier sqlc.Querier, cursor pagination.TaskListCursor, dir pag
 
 		limit := int64(pagination.DefaultPageSize + 1)
 
-		if dir == pagination.DirectionForward {
+		switch dir {
+		case pagination.DirectionForward:
 			tasks, err = querier.ListTasksPageForward(ctx, cursor.ForwardParams(limit))
-		} else {
+		case pagination.DirectionBackward:
 			tasks, err = querier.ListTasksPageBackward(ctx, cursor.BackwardParams(limit))
-			for i, j := 0, len(tasks)-1; i < j; i, j = i+1, j-1 {
-				tasks[i], tasks[j] = tasks[j], tasks[i]
-			}
+			slices.Reverse(tasks)
 		}
 
 		if err != nil {
@@ -113,7 +110,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case pageLoadedMsg:
 		m.loading = false
-		m.loadingMore = false
 		if msg.err != nil {
 			m.err = fmt.Errorf("failed to load tasks: %w", msg.err)
 		} else if msg.page != nil {
@@ -121,11 +117,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.refreshListItems()
 		}
 
-	case loadingMoreMsg:
-		m.loadingMore = true
-
 	case tea.KeyMsg:
-		cmds = append(cmds, m.checkAndLoadMore())
+		if cmd := m.checkAndLoadMore(); cmd != nil {
+			m.loading = true
+			cmds = append(cmds, cmd)
+		}
 	}
 
 	var cmd tea.Cmd
@@ -143,7 +139,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) checkAndLoadMore() tea.Cmd {
-	if m.loadingMore {
+	if m.loading {
 		return nil
 	}
 
@@ -152,20 +148,14 @@ func (m *Model) checkAndLoadMore() tea.Cmd {
 	if m.window.ShouldLoadNext(currentIdx) {
 		cursor, pageIdx, ok := m.window.GetNextPageCursor()
 		if ok {
-			return tea.Batch(
-				func() tea.Msg { return loadingMoreMsg{} },
-				loadPageCmd(m.querier, cursor, pagination.DirectionForward, pageIdx),
-			)
+			return loadPageCmd(m.querier, cursor, pagination.DirectionForward, pageIdx)
 		}
 	}
 
 	if m.window.ShouldLoadPrev(currentIdx) {
 		cursor, pageIdx, ok := m.window.GetPrevPageCursor()
 		if ok {
-			return tea.Batch(
-				func() tea.Msg { return loadingMoreMsg{} },
-				loadPageCmd(m.querier, cursor, pagination.DirectionBackward, pageIdx),
-			)
+			return loadPageCmd(m.querier, cursor, pagination.DirectionBackward, pageIdx)
 		}
 	}
 
@@ -190,12 +180,13 @@ func (m Model) View() string {
 	if m.err != nil {
 		return fmt.Sprintf("Error: %v\n", m.err)
 	}
-	if m.loading {
+
+	if m.loading && m.window.ItemCount() == 0 {
 		return "Loading tasks..."
 	}
 
 	view := m.list.View()
-	if m.loadingMore {
+	if m.loading {
 		view += "\n Loading more..."
 	}
 	return view
